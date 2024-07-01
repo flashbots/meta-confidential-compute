@@ -3,7 +3,7 @@ COMPATIBLE_MACHINE:sev-snp = "sev-snp"
 
 KERNEL_FEATURES:append:sev-snp=" features/scsi/disk.scc"
 KERNEL_FEATURES:append:sev-snp=" cfg/virtio.scc cfg/paravirt_kvm.scc cfg/fs/ext4.scc"
-KERNEL_FEATURES:append:sev-snp=" sev-snp.scc tpm2.scc hyperv.scc disk-encryption.scc"
+KERNEL_FEATURES:append:sev-snp=" sev-snp.scc tpm2.scc hyperv.scc security-mitigations.scc disk-encryption.scc"
 
 KMACHINE:tdx ?= "common-pc-64"
 COMPATIBLE_MACHINE:tdx = "tdx"
