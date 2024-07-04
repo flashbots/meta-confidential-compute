@@ -19,15 +19,22 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# example usage: ./deploy.sh /path/to/disk.vhd disk_and_vm_name resource_group region Standard_EC4eds_v5
+# example usage: ./deploy.sh /path/to/disk.vhd resource_and_disk_and_vm_name region Standard_EC4eds_v5 dev_server_ip
 
 DISK_PATH=$1
-DISK_NAME=$2
-RESOURCE_GROUP=$3
-REGION=$4
-VM_SIZE=$5
+VM_NAME=$2
+REGION=$3
+VM_SIZE=$4
+SOURCE_IP=$5
+
+RESOURCE_GROUP=${VM_NAME}
+DISK_NAME=${VM_NAME}
+NSG=${VM_NAME}
 
 DISK_SIZE=`wc -c < ${DISK_PATH}`
+
+echo "creating resource group"
+az group create --name ${DISK_NAME} --location ${REGION}
 
 echo "creating disk"
 az disk create -n ${DISK_NAME} -g ${RESOURCE_GROUP} -l ${REGION} --os-type Linux --upload-type Upload --upload-size-bytes ${DISK_SIZE} --sku standard_lrs --security-type ConfidentialVM_NonPersistedTPM --hyper-v-generation V2
@@ -43,5 +50,26 @@ azcopy copy ${DISK_PATH} ${SAS_URI} --blob-type PageBlob
 echo "revoking access"
 az disk revoke-access -n ${DISK_NAME} -g ${RESOURCE_GROUP}
 
+echo "creating network security group"
+az network nsg create --name ${NSG} --resource-group ${RESOURCE_GROUP} --location  ${REGION}
+
+echo "creating ssh rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name AllowSSH --priority 100 --source-address-prefixes ${SOURCE_IP} --destination-port-ranges 22 --access Allow --protocol Tcp
+
+echo "creating TCP 8545 rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name TCP8545 --priority 110 --destination-port-ranges 8545 --access Allow --protocol Tcp
+
+echo "creating TCP 8551 rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name TCP8551 --priority 111 --destination-port-ranges 8551 --access Allow --protocol Tcp
+
+echo "creating TCP 8645 rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name TCP8645 --priority 112 --destination-port-ranges 8645 --access Allow --protocol Tcp
+
+echo "creating TCP 8745 rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name TCP8745 --priority 113 --destination-port-ranges 8745 --access Allow --protocol Tcp
+
+echo "creating Any 30303 rule"
+az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name ANY30303 --priority 114 --destination-port-ranges 30303 --access Allow
+
 echo "booting vm"
-az vm create --name ${DISK_NAME} --size ${VM_SIZE} --resource-group ${RESOURCE_GROUP} --attach-os-disk ${DISK_NAME} --security-type ConfidentialVM --enable-vtpm true --enable-secure-boot false  --os-disk-security-encryption-type NonPersistedTPM --os-type Linux
+az vm create --name ${VM_NAME} --size ${VM_SIZE} --resource-group ${RESOURCE_GROUP} --attach-os-disk ${DISK_NAME} --security-type ConfidentialVM --enable-vtpm true --enable-secure-boot false  --os-disk-security-encryption-type NonPersistedTPM --os-type Linux --nsg ${NSG}
