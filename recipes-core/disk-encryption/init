@@ -18,10 +18,6 @@ LOGFILE=/tmp/disk-encryption.log
 
 start() {
 	echo -n "Starting $DESC: "
-	if ! [ -f /dev/sdb ] ; then
-		echo "/dev/sdb not found, aborting encrypted disk setup"
-		exit 1
-	fi
 	KEY=''
 	get_key KEY
 	if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data -; then
