@@ -19,13 +19,14 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# example usage: ./deploy.sh /path/to/disk.vhd resource_and_disk_and_vm_name region Standard_EC4eds_v5 dev_server_ip
+# example usage: ./deploy.sh /path/to/disk.vhd resource_and_disk_and_vm_name region Standard_EC4eds_v5 dev_server_ip /path/to/config.json
 
 DISK_PATH=$1
 VM_NAME=$2
 REGION=$3
 VM_SIZE=$4
 SOURCE_IP=$5
+VM_CONFIG=$6
 
 RESOURCE_GROUP=${VM_NAME}
 DISK_NAME=${VM_NAME}
@@ -72,4 +73,4 @@ echo "creating Any 30303 rule"
 az network nsg rule create --nsg-name ${NSG} --resource-group ${RESOURCE_GROUP} --name ANY30303 --priority 114 --destination-port-ranges 30303 --access Allow
 
 echo "booting vm"
-az vm create --name ${VM_NAME} --size ${VM_SIZE} --resource-group ${RESOURCE_GROUP} --attach-os-disk ${DISK_NAME} --security-type ConfidentialVM --enable-vtpm true --enable-secure-boot false  --os-disk-security-encryption-type NonPersistedTPM --os-type Linux --nsg ${NSG}
+az vm create --name ${VM_NAME} --size ${VM_SIZE} --resource-group ${RESOURCE_GROUP} --attach-os-disk ${DISK_NAME} --security-type ConfidentialVM --enable-vtpm true --enable-secure-boot false  --os-disk-security-encryption-type NonPersistedTPM --os-type Linux --nsg ${NSG} --user-data ${VM_CONFIG}
