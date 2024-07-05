@@ -18,13 +18,16 @@ LOGFILE=/tmp/disk-encryption.log
 
 start() {
 	echo -n "Starting $DESC: "
-	parted -sf /dev/sda resizepart 2 '100%'
+	if ! [ -f /dev/sdb ] ; then
+		echo "/dev/sdb not found, aborting encrypted disk setup"
+		exit 1
+	fi
 	KEY=''
 	get_key KEY
-	if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sda2 data -; then
+	if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data -; then
 		echo "LUKS volume not opened successfully. Formatting and creating filesystem."
-		echo -n "$KEY" | cryptsetup -q --batch-mode luksFormat /dev/sda2
-		echo -n "$KEY" | cryptsetup luksOpen /dev/sda2 data -
+		echo -n "$KEY" | cryptsetup -q --batch-mode luksFormat /dev/sdb
+		echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data -
 		mkfs.ext4 /dev/mapper/data
 	fi
 	mkdir -p /persistent
