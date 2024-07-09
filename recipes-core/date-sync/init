@@ -17,16 +17,14 @@ LOGFILE=/tmp/date-sync.log
 
 start() {
 	echo -n "Starting $DESC: "
-	# Get the current UTC time from worldtimeapi.org
-	current_time=$(curl -s "http://worldtimeapi.org/api/timezone/Etc/UTC" | sed -n 's/.*"datetime":"\([^.]*\).*/\1/p')
 
-	# Format the time string
-	formatted_time=$(date -u -d "$current_time" '+%a %b %d %H:%M:%S UTC %Y')
+	# update time by fetching the latest one from ntp
+	ntpd -q -p pool.ntp.org
 
-	# Set the system time
-	date -u -s "$formatted_time"
+	# get current time
+	current_time=$(date)
 
-	echo "Time synchronization completed. New time: $formatted_time"
+	echo "Time synchronization completed. New time: $current_time"
 	echo "$NAME."
 }
 
