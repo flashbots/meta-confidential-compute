@@ -6,7 +6,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}:"
 SRC_URI += "file://init"
 
 INITSCRIPT_NAME = "disk-encryption"
-INITSCRIPT_PARAMS = "defaults 97"
+INITSCRIPT_PARAMS = "defaults 94"
 
 inherit update-rc.d
 

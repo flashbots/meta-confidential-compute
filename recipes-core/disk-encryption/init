@@ -32,39 +32,6 @@ start() {
 	fi
 	mkdir -p /persistent
 	mount /dev/mapper/data /persistent
-	
-	# Create swap file if it doesn't exist
-	if [ ! -f /persistent/swapfile ]; then
-		echo "Creating 512GB swap file..."
-		if ! dd if=/dev/zero of=/persistent/swapfile bs=1G count=512 status=progress; then
-			echo "Error: Failed to create swap file" >&2
-			exit 1
-		fi
-
-		if ! chmod 600 /persistent/swapfile; then
-			echo "Error: Failed to set permissions on swap file" >&2
-			exit 1
-		fi
-
-		if ! mkswap /persistent/swapfile; then
-			echo "Error: Failed to set up swap area" >&2
-			exit 1
-		fi
-	fi
-
-	# Enable swap
-	if ! swapon /persistent/swapfile; then
-		echo "Error: Failed to enable swap" >&2
-		exit 1
-	fi
-
-	# Make swap permanent
-	if ! grep -q "/persistent/swapfile" /etc/fstab; then
-		if ! echo "/persistent/swapfile none swap sw 0 0" >> /etc/fstab; then
-			echo "Error: Failed to add swap entry to /etc/fstab" >&2
-			exit 1
-		fi
-	fi
 	echo "$NAME."
 }
 
