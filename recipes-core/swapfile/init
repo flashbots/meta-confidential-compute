@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:        swapfile
+# Required-Start:    $remote_fs $syslog $networking
+# Required-Stop:    $remote_fs $syslog
+# Default-Start:    2 3 4 5
+# Default-Stop:        1
+# Short-Description:    Start and stop the swapfile daemon
+### END INIT INFO
+#
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME=swapfile
+DESC="Swapfile"
+LOGFILE=/tmp/swapfile.log
+SWAPFILE_SIZE=512  # This will be replaced by the recipe
+
+start() {
+    echo -n "Starting $DESC: "
+    # Create swap file if it doesn't exist
+    if [ ! -f /persistent/swapfile ]; then
+        echo "Creating ${SWAPFILE_SIZE}GB swap file..."
+        if ! dd if=/dev/zero of=/persistent/swapfile bs=1G count=${SWAPFILE_SIZE} status=progress; then
+            echo "Error: Failed to create swap file" >&2
+            exit 1
+        fi
+        if ! chmod 600 /persistent/swapfile; then
+            echo "Error: Failed to set permissions on swap file" >&2
+            exit 1
+        fi
+        if ! mkswap /persistent/swapfile; then
+            echo "Error: Failed to set up swap area" >&2
+            exit 1
+        fi
+    fi
+    # Enable swap
+    if ! swapon /persistent/swapfile; then
+        echo "Error: Failed to enable swap" >&2
+        exit 1
+    fi
+    # Make swap permanent
+    if ! grep -q "/persistent/swapfile" /etc/fstab; then
+        if ! echo "/persistent/swapfile none swap sw 0 0" >> /etc/fstab; then
+            echo "Error: Failed to add swap entry to /etc/fstab" >&2
+            exit 1
+        fi
+    fi
+    echo "$NAME."
+}
+
+case "$1" in
+  start)
+        start > $LOGFILE 2>&1
+        ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N start" >&2
+    exit 1
+    ;;
+esac
+exit 0
