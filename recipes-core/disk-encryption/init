@@ -1,82 +1,152 @@
 #!/bin/sh
-#
+set -eux -o pipefail
+
 ### BEGIN INIT INFO
-# Provides:		disk-encryption
-# Required-Start:	$remote_fs $syslog $networking
-# Required-Stop:	$remote_fs $syslog
-# Default-Start:	2 3 4 5
-# Default-Stop:		1
-# Short-Description:	Start and stop the disk-encryption daemon
+# Provides:             disk-encryption
+# Required-Start:       $remote_fs $syslog $networking
+# Required-Stop:        $remote_fs $syslog
+# Default-Start:        2 3 4 5
+# Default-Stop:         1
+# Short-Description:    Start and stop the disk-encryption daemon
 ### END INIT INFO
-#
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=disk-encryption
 DESC="Disk Encryption"
 KEYSIZE=64
 LOGFILE=/tmp/disk-encryption.log
+TPM_NV_INDEX=0x1500016
 
-start() {
-	echo -n "Starting $DESC: "
-	if ! [ -b /dev/sdb ] ; then
-		echo "/dev/sdb not found, aborting encrypted disk setup"
-		exit 1
-	fi
-	KEY=''
-	get_key KEY
-	if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data -; then
-		echo "LUKS volume not opened successfully. Formatting and creating filesystem."
-		echo -n "$KEY" | cryptsetup -q --batch-mode luksFormat /dev/sdb
-		echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data -
-		mkfs.ext4 /dev/mapper/data
-	fi
-	mkdir -p /persistent
-	mount /dev/mapper/data /persistent
-	echo "$NAME."
+# Export TPM2TOOLS_TCTI
+export TPM2TOOLS_TCTI="device:/dev/tpmrm0"
+
+log() {
+    echo "$(date): $1" | tee -a $LOGFILE /dev/kmsg
 }
 
-# from https://github.com/kelderek/TPM2-LUKS/blob/main/tpm2-luks-unlock.sh
+generate_key() {
+    local key=""
+    if [ -e /dev/hwrng ]; then
+        key=$(dd if=/dev/hwrng bs=1024 count=1 2>/dev/null | tr -dc 'a-zA-Z0-9' | dd bs=1 count=$KEYSIZE 2>/dev/null)
+    fi
+    
+    # If hardware RNG failed or is not available, use /dev/urandom
+    if [ -z "$key" ]; then
+        log "Using /dev/urandom for key generation"
+        key=$(dd if=/dev/urandom bs=1024 count=1 2>/dev/null | tr -dc 'a-zA-Z0-9' | dd bs=1 count=$KEYSIZE 2>/dev/null)
+    fi
+    
+    if [ ${#key} -ne $KEYSIZE ]; then
+        log "Failed to generate a key of correct length. Generated length: ${#key}"
+        return 1
+    fi
+    
+    echo "$key"
+}
+
 get_key() {
-	# Attempt to read from the TPM2 to see if something is already there
-	KEY=$(tpm2_nvread 0x1500016 2> /dev/null)
-	if [ "$KEY" == "" ] # No key was found in TPM2 or user wants a new key made
-	then
-		# Generate a $KEYSIZE long char alphanumeric key and save it to /root/tpm2.key
-		KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | dd bs=1 count=$KEYSIZE 2> /dev/null)
+    # Attempt to read from the TPM2
+    local key
+    local output
+    output=$(tpm2_nvread $TPM_NV_INDEX 2>&1)
+    key=$(echo "$output" | grep -v "ERROR" || true)
+    if [ -z "$key" ]; then
+        if [ -z "$output" ]; then
+            log "Failed to read TPM NV index. No output from tpm2_nvread."
+        else
+            log "Failed to read TPM NV index. Error: $output"
+        fi
+        return 1
+    fi
+    echo "$key"
+}
 
-		# Store the key in /root/tpm2.key
-		echo -n $KEY > /root/tpm2.key
+store_key_in_tpm() {
+    local key="$1"
+    
+    # Undefine the NV index if it exists
+    tpm2_nvundefine $TPM_NV_INDEX 2>/dev/null || true
+    log "Undefined existing NV index (if any)"
 
-		# Clear out the area on the TPM2 just to be safe
-		tpm2_nvundefine 0x1500016
+    # Define the area for the key on the TPM2
+    if ! tpm2_nvdefine -s $KEYSIZE $TPM_NV_INDEX; then
+        log "Failed to define TPM NV index. Aborting."
+        return 1
+    fi
+    log "Defined new NV index"
 
-		# Define the area for the key on the TPM2
-		tpm2_nvdefine -s $KEYSIZE 0x1500016
+    # Store the key in the TPM
+    if ! echo -n "$key" | tpm2_nvwrite $TPM_NV_INDEX -i-; then
+        log "Failed to write key to TPM NV index. Aborting."
+        tpm2_nvundefine $TPM_NV_INDEX 2>/dev/null || true  # Clean up on failure
+        return 1
+    fi
+    log "Successfully stored key in TPM"
+}
 
-		# Store the key in the TPM
-		tpm2_nvwrite -i /root/tpm2.key 0x1500016
+start() {
+    log "Starting $DESC"
+    
+    # Error checking
+    if [ ! -e /dev/tpm0 ] || [ ! -e /dev/tpmrm0 ]; then
+        log "TPM device not found. Aborting disk encryption setup."
+        return 1
+    fi
 
-		# Make sure /root/tpm2.key and the TPM2 device match
-		tpm2_nvread -s $KEYSIZE 0x1500016 2> /dev/null | diff /root/tpm2.key - > /dev/null
-		if [ $? != 0 ]
-			then
-			echo "Could not verify the key is stored properly in the TPM2 device."
-			echo "Cannot proceed!"
-			exit
-		fi
-		rm /root/tpm2.key
-	fi
-	eval "$1=$KEY"
+    if [ ! -b /dev/sdb ]; then
+        log "Target disk /dev/sdb not found. Aborting disk encryption setup."
+        return 1
+    fi
+
+    KEY=$(get_key)
+    if [ $? -ne 0 ] || [ -z "$KEY" ]; then
+        log "No existing key in TPM. Generating new key."
+        KEY=$(generate_key)
+        if [ $? -ne 0 ] || [ -z "$KEY" ]; then
+            log "Key generation failed. Aborting."
+            return 1
+        fi
+        if ! store_key_in_tpm "$KEY"; then
+            log "Failed to store new key in TPM. Aborting."
+            return 1
+        fi
+        log "New key generated and stored in TPM."
+    else
+        log "Existing key retrieved from TPM."
+    fi
+
+    if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data - ; then
+        log "LUKS volume not opened successfully. Formatting and creating filesystem."
+        if ! echo -n "$KEY" | cryptsetup -q --batch-mode luksFormat /dev/sdb; then
+            log "Failed to format LUKS volume. Aborting."
+            return 1
+        fi
+        if ! echo -n "$KEY" | cryptsetup luksOpen /dev/sdb data - ; then
+            log "Failed to open LUKS volume after formatting. Aborting."
+            return 1
+        fi
+        if ! mkfs.ext4 /dev/mapper/data; then
+            log "Failed to create filesystem on LUKS volume. Aborting."
+            return 1
+        fi
+    fi
+    mkdir -p /persistent
+    if ! mount /dev/mapper/data /persistent; then
+        log "Failed to mount LUKS volume. Aborting."
+        return 1
+    fi
+    log "$NAME started successfully."
 }
 
 case "$1" in
   start)
-        start > $LOGFILE 2>&1
+        start
         ;;
   *)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N start" >&2
-	exit 1
-	;;
+    N=/etc/init.d/$NAME
+    echo "Usage: $N start" >&2
+    exit 1
+    ;;
 esac
+
 exit 0
