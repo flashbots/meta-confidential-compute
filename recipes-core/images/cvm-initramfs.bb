@@ -7,12 +7,12 @@ that can subsequently be picked up by external image generation tools such as wi
 
 CVM_DEPS = "busybox-mdev init-ifupdown initscripts base-files base-passwd netbase busybox-udhcpd"
 
-PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd dropbear rbuilder jq ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
+PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd dropbear date-sync ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
 
 INITRAMFS_MAXSIZE = "20000000"
 
 # Do not pollute the initrd image with rootfs features
-IMAGE_FEATURES = "debug-tweaks"
+IMAGE_FEATURES = ""
 
 export IMAGE_BASENAME = "cvm-initramfs"
 IMAGE_NAME_SUFFIX ?= ""
