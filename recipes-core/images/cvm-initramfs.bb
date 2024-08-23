@@ -7,7 +7,7 @@ that can subsequently be picked up by external image generation tools such as wi
 
 CVM_DEPS = "busybox-mdev init-ifupdown initscripts base-files base-passwd netbase busybox-udhcpd"
 
-PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd dropbear date-sync ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
+PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd date-sync ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
 
 INITRAMFS_MAXSIZE = "20000000"
 
@@ -34,7 +34,10 @@ python () {
     if d.getVar('DEBUG_TWEAKS_ENABLED') == '1':
         # give a warning that the debug tweaks are enabled
         bb.warn("Debug tweaks are enabled in the image")
+        # add the debug-tweaks feature to the image if DEBUG_TWEAKS_ENABLED is set
         d.appendVar('IMAGE_FEATURES', ' debug-tweaks')
+        # add dropbear to the package install list to be able to login for debugging purposes
+        d.appendVar('PACKAGE_INSTALL', ' dropbear')
 }
 
 export IMAGE_BASENAME = "cvm-initramfs"
