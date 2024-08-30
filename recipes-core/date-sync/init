@@ -1,42 +1,76 @@
 #!/bin/sh
-#
 ### BEGIN INIT INFO
-# Provides:		date-sync
-# Required-Start:	$remote_fs $syslog $networking
-# Required-Stop:	$remote_fs $syslog
-# Default-Start:	2 3 4 5
-# Default-Stop:		1
-# Short-Description:	Start and stop the date-sync daemon
+# Provides:             date-sync
+# Required-Start:       $remote_fs $syslog $networking
+# Required-Stop:        $remote_fs $syslog
+# Default-Start:        2 3 4 5
+# Default-Stop:         1
+# Short-Description:    Start and stop the date-sync daemon
 ### END INIT INFO
-#
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=date-sync
 DESC="Date Sync"
 LOGFILE=/tmp/date-sync.log
+PIDFILE=/var/run/date-sync.pid
 
-start() {
-	echo -n "Starting $DESC: "
+# Configuration
+NTP_SERVER="pool.ntp.org"
+SYNC_INTERVAL=60  # Run every 60 seconds (1 minute)
+MAX_LOG_SIZE=524288  # 512KB (0.5MB) in bytes
 
-	# update time by fetching the latest one from ntp
-	ntpd -q -p pool.ntp.org
-
-	# get current time
-	current_time=$(date)
-
-	echo "Time synchronization completed. New time: $current_time"
-	echo "$NAME."
+log() {
+    echo "$(date +"%Y-%m-%d %H:%M:%S"): $1" >> $LOGFILE
+    if [ -f "$LOGFILE" ] && [ $(stat -c %s "$LOGFILE") -gt $MAX_LOG_SIZE ]; then
+        tail -n 1000 "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
+    fi
 }
 
+sync_time() {
+    log "Synchronizing time with $NTP_SERVER"
+    if ntpd -q -p $NTP_SERVER; then
+        log "Time synchronized successfully"
+    else
+        log "Time synchronization failed"
+    fi
+}
+
+run_daemon() {
+    while true; do
+        sync_time
+        sleep $SYNC_INTERVAL
+    done
+}
+
+start_daemon() {
+    log "Starting $DESC"
+    run_daemon &
+    echo $! > $PIDFILE
+}
+
+stop_daemon() {
+    log "Stopping $DESC"
+    if [ -f $PIDFILE ]; then
+        kill $(cat $PIDFILE)
+        rm $PIDFILE
+    fi
+}
 
 case "$1" in
   start)
-        start > $LOGFILE 2>&1
-        ;;
+	start_daemon
+	;;
+  stop)
+	stop_daemon
+	;;
+  restart)
+	stop_daemon
+	start_daemon
+	;;
   *)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N start" >&2
+	echo "Usage: $0 {start|stop|restart}" >&2
 	exit 1
 	;;
 esac
+
 exit 0
