@@ -27,11 +27,16 @@ log() {
 }
 
 sync_time() {
-    log "Synchronizing time with $NTP_SERVER"
-    if ntpd -q -p $NTP_SERVER; then
-        log "Time synchronized successfully"
+    ntpd_output=$(ntpd -n -q -d -p $NTP_SERVER 2>&1)
+    if [ $? -eq 0 ]; then
+        offset=$(echo "$ntpd_output" | grep "offset:" | tail -n 1 | sed 's/.*offset:\([^ ]*\).*/\1/')
+        if [ -n "$offset" ]; then
+            log "Time synchronized with $NTP_SERVER successfully. Offset: $offset seconds"
+        else
+            log "Time synchronized with $NTP_SERVER successfully. Offset information not found in output."
+        fi
     else
-        log "Time synchronization failed"
+        log "Time synchronization with $NTP_SERVER failed. Error output: $ntpd_output"
     fi
 }
 
