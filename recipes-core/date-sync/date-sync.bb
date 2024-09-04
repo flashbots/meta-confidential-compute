@@ -5,7 +5,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}:"
 SRC_URI += "file://init"
 
 INITSCRIPT_NAME = "date-sync"
-INITSCRIPT_PARAMS = "defaults 96"
+INITSCRIPT_PARAMS = "defaults 80"
 
 inherit update-rc.d
 
