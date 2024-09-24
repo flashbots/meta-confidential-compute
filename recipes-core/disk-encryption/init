@@ -14,7 +14,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=disk-encryption
 DESC="Disk Encryption"
 KEYSIZE=64
-LOGFILE=/tmp/disk-encryption.log
+LOGFILE=/var/log/disk-encryption.log
 TPM_NV_INDEX=0x1500016
 
 # Export TPM2TOOLS_TCTI

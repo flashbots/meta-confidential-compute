@@ -11,7 +11,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=date-sync
 DESC="Date Sync"
-LOGFILE=/tmp/date-sync.log
+LOGFILE=/var/log/date-sync.log
 PIDFILE=/var/run/date-sync.pid
 
 # Configuration
