@@ -1,0 +1,7 @@
+# short-description: Create an EFI disk image
+# long-description: Creates a partitioned EFI disk image that the user
+# can directly dd to boot media.
+
+part /boot --source bootimg-efi --sourceparams="loader=grub-efi,initrd=${INITRAMFS_IMAGE}-${MACHINE}.${INITRAMFS_FSTYPES}" --ondisk sda --label boot --active --align 1024
+
+bootloader --ptable gpt --timeout=0 --append="console=ttyS0,38400n8 scsi_mod.use_blk_mq=Y console=tty0 ramdisk_size=402653184"
