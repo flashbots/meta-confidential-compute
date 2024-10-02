@@ -22,26 +22,6 @@ GO_EXTRA_LDFLAGS:append = " -s -w -buildid= -X ${GO_IMPORT}/common.Version=${PV}
 
 do_compile[network] = "1"
 
-do_unpack:append() {
-    bb.build.exec_func('do_fix_go_mod_and_imports', d)
-}
-
-do_fix_go_mod_and_imports() {
-    if [ -d "${S}/src/${GO_IMPORT}" ]; then
-        cd ${S}/src/${GO_IMPORT}
-    elif [ -d "${S}" ]; then
-        cd ${S}
-    else
-        bbfatal "Cannot find the correct source directory"
-    fi
-
-    # Fix go.mod
-    sed -i '1s#^module.*#module github.com/flashbots/cvm-reverse-proxy#' go.mod
-
-    # Fix import statements in Go files
-    find . -name "*.go" -type f -exec sed -i 's#"cvm-reverse-proxy/#"github.com/flashbots/cvm-reverse-proxy/#g' {} +
-}
-
 do_install:append() {
     install -d ${D}${sysconfdir}/init.d
     install -m 0755 ${WORKDIR}/${INITSCRIPT_NAME} ${D}${sysconfdir}/init.d/${INITSCRIPT_NAME}
