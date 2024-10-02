@@ -1,0 +1,55 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          cvm-reverse-proxy-server
+# Required-Start:    $network $remote_fs $syslog
+# Required-Stop:     $network $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start CVM Reverse Proxy Server at boot time
+# Description:       Enable CVM Reverse Proxy Server service.
+### END INIT INFO
+
+DAEMON=/usr/bin/proxy-server
+NAME=cvm-reverse-proxy-server
+DESC="CVM Reverse Proxy Server"
+DAEMON_ARGS="--listen-addr=https://localhost:7946 --target-addr=localhost:7936 --server-attestation-type azure-tdx"
+PIDFILE=/var/run/$NAME.pid
+LOGFILE=/var/log/$NAME.log
+
+start() {
+    echo -n "Starting $DESC: "
+    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
+    echo "$NAME."
+}
+
+stop() {
+    echo -n "Stopping $DESC: "
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE
+    rm -f $PIDFILE
+    echo "$NAME."
+}
+
+restart() {
+    echo "Restarting $DESC: "
+    stop
+    sleep 1
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        restart
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
