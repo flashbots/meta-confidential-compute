@@ -12,7 +12,7 @@
 DAEMON=/usr/bin/proxy-server
 NAME=cvm-reverse-proxy-server
 DESC="CVM Reverse Proxy Server"
-DAEMON_ARGS="--listen-addr=localhost:7946 --target-addr=http://localhost:7936 --server-attestation-type azure-tdx"
+DAEMON_ARGS="--listen-addr=localhost:7936 --target-addr=http://localhost:14727 --server-attestation-type azure-tdx"
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 
