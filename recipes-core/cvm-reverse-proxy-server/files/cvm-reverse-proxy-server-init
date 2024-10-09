@@ -18,12 +18,14 @@ LOGFILE=/var/log/$NAME.log
 
 start() {
     echo -n "Starting $DESC: "
+    echo "Starting $DESC" > /var/volatile/system-api.fifo
     start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
     echo "$NAME."
 }
 
 stop() {
     echo -n "Stopping $DESC: "
+    echo "Stopping $DESC" > /var/volatile/system-api.fifo
     start-stop-daemon --stop --quiet --pidfile $PIDFILE
     rm -f $PIDFILE
     echo "$NAME."
@@ -31,6 +33,7 @@ stop() {
 
 restart() {
     echo "Restarting $DESC: "
+    echo "Restarting $DESC" > /var/volatile/system-api.fifo
     stop
     sleep 1
     start

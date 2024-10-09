@@ -1,31 +1,29 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          cvm-reverse-proxy-client
+# Provides:          system-api
 # Required-Start:    $network $remote_fs $syslog
 # Required-Stop:     $network $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start CVM Reverse Proxy Client at boot time
-# Description:       Enable CVM Reverse Proxy Client service.
+# Short-Description: Start Orderflow Proxy at boot time
+# Description:       Enable Orderflow Proxy service.
 ### END INIT INFO
 
-DAEMON=/usr/bin/proxy-client
-NAME=cvm-reverse-proxy-client
-DESC="CVM Reverse Proxy Client"
-DAEMON_ARGS="--listen-addr=localhost:7937 --target-addr=https://hub-atls.builder.flashbots.net --client-attestation-type azure-tdx --server-attestation-type none"
+DAEMON=/usr/bin/system-api
+NAME=system-api
+DESC="System API Service"
+DAEMON_ARGS="--listen-addr 0.0.0.0:3535 --pipe-file /var/volatile/system-api.fifo"
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 
 start() {
     echo -n "Starting $DESC: "
-    echo "Starting $DESC" > /var/volatile/system-api.fifo
     start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
     echo "$NAME."
 }
 
 stop() {
     echo -n "Stopping $DESC: "
-    echo "Stopping $DESC" > /var/volatile/system-api.fifo
     start-stop-daemon --stop --quiet --pidfile $PIDFILE
     rm -f $PIDFILE
     echo "$NAME."
@@ -33,7 +31,6 @@ stop() {
 
 restart() {
     echo "Restarting $DESC: "
-    echo "Restarting $DESC" > /var/volatile/system-api.fifo
     stop
     sleep 1
     start
