@@ -20,6 +20,8 @@ start() {
     echo -n "Starting $DESC: "
     start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
     echo "$NAME."
+    # Wait for the service to start
+    sleep 1
 }
 
 stop() {
