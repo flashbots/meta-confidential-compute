@@ -22,6 +22,7 @@ export TPM2TOOLS_TCTI="device:/dev/tpmrm0"
 
 log() {
     echo "$(date): $1" | tee -a $LOGFILE /dev/kmsg
+    echo "$1" > /var/volatile/system-api.fifo
 }
 
 generate_key() {

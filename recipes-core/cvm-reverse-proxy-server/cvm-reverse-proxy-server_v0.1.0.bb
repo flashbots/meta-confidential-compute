@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_WORKDIR}/LICENSE;md5=4ae09d45eac4aa08d013b5f
 inherit go-mod update-rc.d
 
 INITSCRIPT_NAME = "cvm-reverse-proxy-server-init"
-INITSCRIPT_PARAMS = "defaults 85"
+INITSCRIPT_PARAMS = "defaults 86"
 
 GO_IMPORT = "github.com/flashbots/cvm-reverse-proxy"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
