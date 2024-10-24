@@ -1,5 +1,5 @@
 SUMMARY = "System API Service"
-HOMEPAGE = "https://github.com/flashbots/builder-tools"
+HOMEPAGE = "https://github.com/flashbots/system-api"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://src/${GO_WORKDIR}/LICENSE;md5=c7bc88e866836b5160340e6c3b1aaa10"
 
@@ -8,10 +8,10 @@ inherit go-mod update-rc.d
 INITSCRIPT_NAME = "system-api-init"
 INITSCRIPT_PARAMS = "defaults 81"
 
-GO_IMPORT = "github.com/flashbots/builder-tools"
+GO_IMPORT = "github.com/flashbots/system-api"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
            file://system-api-init"
-SRCREV = "v0.1.1"
+SRCREV = "v0.3.0"
 
 GO_INSTALL = "${GO_IMPORT}/cmd/system-api"
 GO_LINKSHARED = ""
