@@ -8,4 +8,6 @@ KERNEL_FEATURES:append:pn-linux-yocto-rt = " gcp.scc cfg/virtio.scc cfg/paravirt
 # gcp is not compatible with udhcpc, needs dhcpcd
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS:append = " dhcpcd"
 
-IMAGE_FSTYPES:append:core-image-minimal = " wic.tar.gz"
+
+# doesnt work, no idea why
+# IMAGE_FSTYPES:append = " wic.tar.gz"
