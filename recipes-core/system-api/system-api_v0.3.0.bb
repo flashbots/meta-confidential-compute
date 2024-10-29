@@ -9,9 +9,8 @@ INITSCRIPT_NAME = "system-api-init"
 INITSCRIPT_PARAMS = "defaults 81"
 
 GO_IMPORT = "github.com/flashbots/system-api"
-SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
+SRC_URI = "git://${GO_IMPORT};protocol=https;nobranch=1;rev=v0.3.0 \
            file://system-api-init"
-SRCREV = "v0.3.0"
 
 GO_INSTALL = "${GO_IMPORT}/cmd/system-api"
 GO_LINKSHARED = ""
