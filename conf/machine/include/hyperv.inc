@@ -8,4 +8,5 @@ KERNEL_FEATURES:append:pn-linux-yocto-rt = " hyperv.scc features/tpm/tpm-2.0.scc
 
 MACHINE_FEATURES:append = " tpm2"
 
-IMAGE_FSTYPES:append:core-image-minimal = " wic.vhd"
+# doesnt work, no idea why
+# IMAGE_FSTYPES:append:core-image-minimal = " wic.vhd"

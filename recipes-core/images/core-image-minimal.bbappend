@@ -12,3 +12,5 @@ CONVERSION_CMD:vhd:prepend = "truncate -s %1MiB ${IMAGE_NAME}.wic; \
 CONVERSION_CMD:tar = "tar --format=oldgnu -Scf ${IMAGE_NAME}.${type}.tar --transform='s|${IMAGE_NAME}.${type}|disk.raw|' ${IMAGE_NAME}.${type}"
 CONVERSION_DEPENDS_tar = "tar-native"
 CONVERSIONTYPES:append = " tar"
+
+IMAGE_FSTYPES:append = " wic.tar.gz wic.vhd wic.qcow2"
