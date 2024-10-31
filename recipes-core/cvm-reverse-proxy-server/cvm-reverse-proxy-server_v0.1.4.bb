@@ -1,3 +1,3 @@
 require cvm-reverse-proxy-server.inc
 
-SRCREV = "v0.1.0"
+SRCREV = "v0.1.4"
