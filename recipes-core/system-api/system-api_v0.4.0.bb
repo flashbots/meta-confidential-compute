@@ -11,7 +11,7 @@ INITSCRIPT_PARAMS = "defaults 81"
 GO_IMPORT = "github.com/flashbots/system-api"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
            file://system-api-init"
-SRCREV = "v0.3.0"
+SRCREV = "v0.4.0"
 
 GO_INSTALL = "${GO_IMPORT}/cmd/system-api"
 GO_LINKSHARED = ""
