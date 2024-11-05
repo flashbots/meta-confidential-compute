@@ -19,7 +19,7 @@ LOGFILE=/var/log/$NAME.log
 start() {
     echo -n "Starting $DESC: "
     echo "Starting $DESC" > /var/volatile/system-api.fifo
-    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
+    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b --exec /bin/sh -- -c "exec $DAEMON $DAEMON_ARGS >> $LOGFILE 2>&1" 
     echo "$NAME."
 }
 
