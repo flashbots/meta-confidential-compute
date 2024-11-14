@@ -32,7 +32,7 @@ find_target_disk() {
     local target_path
     
     # First try to find disk by LUN
-    target_path=$(readlink -f "/dev/disk/by-path/"*"scsi-0:0:0:${TARGET_LUN}" 2>/dev/null || true)
+    target_path=$(readlink -f /dev/disk/by-path/*scsi-0:0:0:${TARGET_LUN} 2>/dev/null || true)
     
     if [ -n "$target_path" ] && [ -b "$target_path" ]; then
         log "Found target disk at ${target_path} using LUN ${TARGET_LUN}"
