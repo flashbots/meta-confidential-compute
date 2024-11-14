@@ -19,8 +19,6 @@ DESC="Disk Encryption"
 KEYSIZE=64
 LOGFILE=/var/log/disk-encryption.log
 TPM_NV_INDEX=0x1500016
-# Default LUN number, can be overridden by environment variable
-TARGET_LUN="${TARGET_LUN:-10}"
 
 # Export TPM2TOOLS_TCTI
 export TPM2TOOLS_TCTI="device:/dev/tpmrm0"
