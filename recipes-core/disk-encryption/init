@@ -40,17 +40,15 @@ find_target_disk() {
         return 0
     fi
     
-    # Fallback: look for the first data disk that's not the boot disk
-    local boot_disk
-    boot_disk=$(mount | grep " on / " | cut -d' ' -f1 | sed 's/[0-9]*$//')
+    # Fallback: Simply find largest disk
+    local largest_disk
+    largest_disk=$(lsblk -bdnpo NAME,SIZE | grep "^/dev/sd" | sort -k2 -nr | head -1 | awk '{print $1}')
     
-    for disk in $(lsblk -dpno name | grep "^/dev/sd"); do
-        if [ "$disk" != "$boot_disk" ]; then
-            log "Found target disk ${disk} as first non-boot disk"
-            echo "$disk"
-            return 0
-        fi
-    done
+    if [ -n "$largest_disk" ] && [ -b "$largest_disk" ]; then
+        log "Found largest disk: ${largest_disk}"
+        echo "$largest_disk"
+        return 0
+    fi
     
     log "No suitable target disk found"
     return 1
