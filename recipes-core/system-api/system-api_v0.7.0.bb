@@ -10,8 +10,10 @@ INITSCRIPT_PARAMS = "defaults 81"
 
 GO_IMPORT = "github.com/flashbots/system-api"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
-           file://system-api-init"
-SRCREV = "v0.5.0"
+           file://system-api-init \
+           file://basic-auth-secret.mustache \
+           file://systemapi-config.toml.mustache"
+SRCREV = "v0.7.0"
 
 GO_INSTALL = "${GO_IMPORT}/cmd/system-api"
 GO_LINKSHARED = ""
@@ -33,6 +35,13 @@ do_install:append() {
 
     install -d ${D}${sysconfdir}/init.d
     install -m 0755 ${WORKDIR}/${INITSCRIPT_NAME} ${D}${sysconfdir}/init.d/${INITSCRIPT_NAME}
+
+    install -d ${D}${sysconfdir}/system-api
+    install -m 0640 ${WORKDIR}/basic-auth-secret.mustache ${D}${sysconfdir}/system-api/
+    install -m 0640 ${WORKDIR}/systemapi-config.toml.mustache ${D}${sysconfdir}/system-api/
 }
 
-FILES:${PN} = "${sysconfdir}/init.d/${INITSCRIPT_NAME} ${bindir}/system-api"
+FILES:${PN} = "${sysconfdir}/init.d/${INITSCRIPT_NAME} \
+               ${bindir}/system-api \
+               ${sysconfdir}/system-api/basic-auth-secret.mustache \
+               ${sysconfdir}/system-api/systemapi-config.toml.mustache"
