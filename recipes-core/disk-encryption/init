@@ -24,7 +24,8 @@ TPM_NV_INDEX=0x1500016
 export TPM2TOOLS_TCTI="device:/dev/tpmrm0"
 
 log() {
-    echo "$(date): $1" | tee -a $LOGFILE /dev/kmsg
+    local message="$(date): $1"
+    echo "$message" >> $LOGFILE
     echo "$1" > /var/volatile/system-api.fifo
 }
 
@@ -42,11 +43,10 @@ find_target_disk() {
     
     # Fallback: Simply find largest disk
     local largest_disk
-    largest_disk=$(lsblk -bdnpo NAME,SIZE | grep "^/dev/sd" | sort -k2 -nr | head -1 | awk '{print $1}')
-    
+    largest_disk=$(lsblk -bdnpo NAME,SIZE | grep "^/dev/sd" | sort -k2 -nr | head -n 1 | awk '{print $1}')    
     if [ -n "$largest_disk" ] && [ -b "$largest_disk" ]; then
         log "Found largest disk: ${largest_disk}"
-        echo "$largest_disk"
+        echo "${largest_disk}"
         return 0
     fi
     
@@ -77,18 +77,13 @@ generate_key() {
 get_key() {
     # Attempt to read from the TPM2
     local key
-    local output
-    output=$(tpm2_nvread $TPM_NV_INDEX 2>&1)
-    key=$(echo "$output" | grep -v "ERROR" || true)
-    if [ -z "$key" ]; then
-        if [ -z "$output" ]; then
-            log "Failed to read TPM NV index. No output from tpm2_nvread."
-        else
-            log "Failed to read TPM NV index. Error: $output"
-        fi
-        return 1
-    fi
-    echo "$key"
+    key=$(tpm2_nvread $TPM_NV_INDEX 2>>$LOGFILE) || {
+        local exit_code=$?
+        log "Failed to read TPM NV index (exit code $exit_code). Check $LOGFILE for details."
+        return $exit_code
+    }
+    printf "%s" "$key"
+    return 0
 }
 
 store_key_in_tpm() {
@@ -132,8 +127,8 @@ start() {
     fi
     log "Using disk: ${TARGET_DISK}"
 
-    KEY=$(get_key)
-    if [ $? -ne 0 ] || [ -z "$KEY" ]; then
+    KEY=$(get_key)|| exit_code=$?
+    if  [ $exit_code -ne 0 ] || [ -z "$KEY" ]; then
         log "No existing key in TPM. Generating new key."
         KEY=$(generate_key)
         if [ $? -ne 0 ] || [ -z "$KEY" ]; then
