@@ -77,13 +77,12 @@ generate_key() {
 get_key() {
     # Attempt to read from the TPM2
     local key
-    key=$(tpm2_nvread $TPM_NV_INDEX 2>>$LOGFILE)
-    if [ -z "$key" ]; then
-        log "Failed to read TPM NV index. Check $LOGFILE for details."
-        printf ""
-        return 0
-    fi
-    printf "%s" "$key" 
+    key=$(tpm2_nvread $TPM_NV_INDEX 2>>$LOGFILE) || {
+        local exit_code=$?
+        log "Failed to read TPM NV index (exit code $exit_code). Check $LOGFILE for details."
+        return $exit_code
+    }
+    printf "%s" "$key"
     return 0
 }
 
@@ -128,8 +127,8 @@ start() {
     fi
     log "Using disk: ${TARGET_DISK}"
 
-    KEY=$(get_key)
-    if [ -z "$KEY" ]; then
+    KEY=$(get_key)|| exit_code=$?
+    if  [ $exit_code -ne 0 ] || [ -z "$KEY" ]; then
         log "No existing key in TPM. Generating new key."
         KEY=$(generate_key)
         if [ $? -ne 0 ] || [ -z "$KEY" ]; then
