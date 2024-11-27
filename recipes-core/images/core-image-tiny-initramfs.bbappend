@@ -2,5 +2,7 @@ PACKAGE_INSTALL = "${DISTRO_EXTRA_RDEPENDS} packagegroup-core-boot ${VIRTUAL-RUN
 
 IMAGE_FEATURES = "${EXTRA_IMAGE_FEATURES}"
 
+INITRAMFS_MAXSIZE = "20000000"
+
 python tinyinitrd () {
 }
