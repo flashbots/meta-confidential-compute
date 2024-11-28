@@ -5,37 +5,56 @@
 # Required-Stop:     $network $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start Orderflow Proxy at boot time
-# Description:       Enable Orderflow Proxy service.
+# Short-Description: Start System API at boot time
+# Description:       Enable System API service.
 ### END INIT INFO
 
 DAEMON=/usr/bin/system-api
 NAME=system-api
 DESC="System API Service"
-DAEMON_ARGS="--listen-addr 0.0.0.0:3535 --pipe-file /var/volatile/system-api.fifo"
+DAEMON_ARGS="--config /etc/system-api/systemapi-config.toml"
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
+SYSTEM_API_FIFO=/var/volatile/system-api.fifo
+
+log() {
+    if [ -p $SYSTEM_API_FIFO ]; then
+        date_log() {
+            echo -n ""
+        }
+    else
+        date_log() {
+            echo -n "$(date): "
+        }
+    fi
+    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO
+}
 
 start() {
-    echo -n "Starting $DESC: "
+    mkdir -p /persistent/rbuilder /persistent/system-api
+    mv $SYSTEM_API_FIFO $SYSTEM_API_FIFO.bak
+    log "Starting $NAME"
     start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
-    echo "$NAME."
     # Wait for the service to start
-    sleep 1
+    sleep 2
+    cat $SYSTEM_API_FIFO.bak > $SYSTEM_API_FIFO
+    rm $SYSTEM_API_FIFO.bak
+    log "Started $NAME"
 }
 
 stop() {
-    echo -n "Stopping $DESC: "
+    log "Stopping $NAME"
     start-stop-daemon --stop --quiet --pidfile $PIDFILE
     rm -f $PIDFILE
-    echo "$NAME."
+    log "Stopped $NAME"
 }
 
 restart() {
-    echo "Restarting $DESC: "
+    log "Restarting $NAME"
     stop
     sleep 1
     start
+    log "Restarted $NAME"
 }
 
 case "$1" in

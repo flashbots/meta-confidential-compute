@@ -1,0 +1,29 @@
+[general]
+listen_addr = "0.0.0.0:3535"
+pipe_file = "/var/volatile/system-api.fifo"
+pprof = false
+log_json = true
+log_debug = false
+
+# HTTP Basic Auth
+basic_auth_secret_path = "/persistent/system-api/basic-auth-secret"
+basic_auth_secret_salt = "1_drink_coffee:|"
+
+# HTTP server timeouts
+# http_read_timeout_ms = 2500
+# http_write_timeout_ms = 2500
+
+# TLS configuration
+tls_enabled = true
+tls_create_if_missing = true
+tls_cert_hosts = "127.0.0.1,localhost,{{public_ip}},{{dns_name}}"
+tls_cert_path = "/persistent/system-api/cert.pem"
+tls_key_path = "/persistent/system-api/key.pem"
+
+[actions]
+reboot = "reboot"
+rbuilder_restart = "/etc/init.d/rbuilder restart"
+rbuilder_stop = "/etc/init.d/rbuilder stop"
+
+[file_uploads]
+rbuilder_blocklist = "/persistent/rbuilder/rbuilder.blocklist.json"

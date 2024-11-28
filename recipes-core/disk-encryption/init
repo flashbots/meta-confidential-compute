@@ -19,14 +19,22 @@ DESC="Disk Encryption"
 KEYSIZE=64
 LOGFILE=/var/log/disk-encryption.log
 TPM_NV_INDEX=0x1500016
+SYSTEM_API_FIFO=/var/volatile/system-api.fifo
 
 # Export TPM2TOOLS_TCTI
 export TPM2TOOLS_TCTI="device:/dev/tpmrm0"
 
 log() {
-    local message="$(date): $1"
-    echo "$message" >> $LOGFILE
-    echo "$1" > /var/volatile/system-api.fifo
+    if [ -p $SYSTEM_API_FIFO ]; then
+        date_log() {
+            echo -n ""
+        }
+    else
+        date_log() {
+            echo -n "$(date): "
+        }
+    fi
+    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO $LOGFILE
 }
 
 find_target_disk() {
@@ -59,18 +67,18 @@ generate_key() {
     if [ -e /dev/hwrng ]; then
         key=$(dd if=/dev/hwrng bs=1024 count=1 2>/dev/null | tr -dc 'a-zA-Z0-9' | dd bs=1 count=$KEYSIZE 2>/dev/null)
     fi
-    
+
     # If hardware RNG failed or is not available, use /dev/urandom
     if [ -z "$key" ]; then
         log "Using /dev/urandom for key generation"
         key=$(dd if=/dev/urandom bs=1024 count=1 2>/dev/null | tr -dc 'a-zA-Z0-9' | dd bs=1 count=$KEYSIZE 2>/dev/null)
     fi
-    
+
     if [ ${#key} -ne $KEYSIZE ]; then
         log "Failed to generate a key of correct length. Generated length: ${#key}"
         return 1
     fi
-    
+
     echo "$key"
 }
 
@@ -88,7 +96,7 @@ get_key() {
 
 store_key_in_tpm() {
     local key="$1"
-    
+
     # Undefine the NV index if it exists
     tpm2_nvundefine $TPM_NV_INDEX 2>/dev/null || true
     log "Undefined existing NV index (if any)"
@@ -111,8 +119,7 @@ store_key_in_tpm() {
 
 start() {
     log "Starting $DESC"
-    echo "Starting $DESC" > /var/volatile/system-api.fifo
-    
+
     # Error checking
     if [ ! -e /dev/tpm0 ] || [ ! -e /dev/tpmrm0 ]; then
         log "TPM device not found. Aborting disk encryption setup."
