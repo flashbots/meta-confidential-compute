@@ -12,4 +12,5 @@ inherit update-rc.d
 do_install() {
     install -m 0755 -d ${D}/var/volatile
     touch ${D}/var/volatile/system-api.fifo
+    chmod 666 ${D}/var/volatile/system-api.fifo
 }
