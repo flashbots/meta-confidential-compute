@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_WORKDIR}/LICENSE;md5=c7bc88e866836b5160340e6
 inherit go-mod update-rc.d
 
 INITSCRIPT_NAME = "system-api-init"
-INITSCRIPT_PARAMS = "defaults 88"
+INITSCRIPT_PARAMS = "defaults 89"
 
 GO_IMPORT = "github.com/flashbots/system-api"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
