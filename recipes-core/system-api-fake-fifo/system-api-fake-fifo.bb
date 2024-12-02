@@ -6,3 +6,5 @@ do_install() {
     touch ${D}/var/volatile/system-api.fifo
     chmod 666 ${D}/var/volatile/system-api.fifo
 }
+
+FILES:${PN} = "/var/volatile/system-api.fifo"
