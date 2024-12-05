@@ -54,4 +54,4 @@ do_install() {
 }
 
 FILES:${PN} += "${sysconfdir}/default/disk-encryption"
-FILES:${PN}:append = " ${@bb.utils.contains('DISK_ENCRYPTION_KEY_STORAGE', 'file', '${D}${sysconfdir}/disk-encryption/key.mustache', '', d)}"
+FILES:${PN}:append = " ${@bb.utils.contains('DISK_ENCRYPTION_KEY_STORAGE', 'file', '${sysconfdir}/disk-encryption/key.mustache', '', d)}"
