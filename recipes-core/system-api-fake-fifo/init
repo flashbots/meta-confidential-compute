@@ -1,0 +1,29 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          system-api-fake-fifo
+# Required-Start:    $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Short-Description: Start System API fake FIFO
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME=system-api-fake-fifo
+DESC="Create a regular file to accumulate system events before System API starts"
+
+start() {
+  install -m 0666 /var/volatile/system-api.fifo
+  echo "Starting $NAME" | tee -a /var/volatile/system-api.fifo
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

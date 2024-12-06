@@ -7,7 +7,7 @@ that can subsequently be picked up by external image generation tools such as wi
 
 CVM_DEPS = "busybox-mdev init-ifupdown initscripts base-files base-passwd netbase busybox-udhcpd"
 
-PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd date-sync logrotate cronie ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
+PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd date-sync logrotate cronie ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL} system-api-fake-fifo"
 
 INITRAMFS_MAXSIZE = "20000000"
 
@@ -16,13 +16,13 @@ IMAGE_FEATURES = ""
 python () {
     # Check if DEBUG_TWEAKS_ENABLED is set in the environment or in local.conf
     debug_tweaks_enabled = d.getVar('DEBUG_TWEAKS_ENABLED')
-    
+
     if debug_tweaks_enabled is None:
         # If not set, check the original environment
         origenv = d.getVar("BB_ORIGENV", False)
         if origenv:
             debug_tweaks_enabled = origenv.getVar('DEBUG_TWEAKS_ENABLED')
-    
+
     if debug_tweaks_enabled:
         # If DEBUG_TWEAKS_ENABLED is set (to any non-empty value), keep its value
         d.setVar('DEBUG_TWEAKS_ENABLED', debug_tweaks_enabled)
