@@ -11,66 +11,96 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 NAME=date-sync
 DESC="Date Sync"
+DAEMON=/usr/sbin/ntpd
 LOGFILE=/var/log/date-sync.log
+LOGFILE_MONITOR=/var/log/date-sync_monitor.log
 PIDFILE=/var/run/date-sync.pid
-
-# Configuration
+PIDFILE_MONITOR=/var/run/date-sync_monitor.pid
+SYSTEM_API_FIFO=/var/volatile/system-api.fifo
 NTP_SERVER="pool.ntp.org"
-SYNC_INTERVAL=60  # Run every 60 seconds (1 minute)
-MAX_LOG_SIZE=524288  # 512KB (0.5MB) in bytes
 
 log() {
-    echo "$(date +"%Y-%m-%d %H:%M:%S"): $1" >> $LOGFILE
-    if [ -f "$LOGFILE" ] && [ $(stat -c %s "$LOGFILE") -gt $MAX_LOG_SIZE ]; then
-        tail -n 1000 "$LOGFILE" > "${LOGFILE}.tmp" && mv "${LOGFILE}.tmp" "$LOGFILE"
-    fi
-}
-
-sync_time() {
-    ntpd_output=$(ntpd -n -q -d -p $NTP_SERVER 2>&1)
-    if [ $? -eq 0 ]; then
-        offset=$(echo "$ntpd_output" | grep "offset:" | tail -n 1 | sed 's/.*offset:\([^ ]*\).*/\1/')
-        if [ -n "$offset" ]; then
-            log "Time synchronized with $NTP_SERVER successfully. Offset: $offset seconds"
-        else
-            log "Time synchronized with $NTP_SERVER successfully. Offset information not found in output."
-        fi
+    if [ -p $SYSTEM_API_FIFO ]; then
+        date_log() {
+            echo -n ""
+        }
     else
-        log "Time synchronization with $NTP_SERVER failed. Error output: $ntpd_output"
+        date_log() {
+            echo -n "$(date --iso-8601=seconds): "
+        }
     fi
+    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO
 }
 
-run_daemon() {
+monitor_and_restart() {
     while true; do
-        sync_time
-        sleep $SYNC_INTERVAL
+        if ! pgrep -f "$DAEMON" > /dev/null; then
+            log "$NAME crashed. Restarting in 60 seconds..." >> ${LOGFILE_MONITOR}
+            sleep 60
+            start
+        fi
+        sleep 5
     done
 }
 
-start_daemon() {
-    log "Starting $DESC"
-    run_daemon &
-    echo $! > $PIDFILE
+start() {
+    log "Starting $NAME"
+    start-stop-daemon -S --make-pidfile --pidfile $PIDFILE \
+        --background --startas /bin/sh -- -c "exec \
+        ${DAEMON} -n -d -p $NTP_SERVER \
+        2>&1 | tee ${LOGFILE}"
+
+    # Start the monitor in the background
+    monitor_and_restart &
+    echo $! > $PIDFILE_MONITOR
 }
 
-stop_daemon() {
-    log "Stopping $DESC"
-    if [ -f $PIDFILE ]; then
-        kill $(cat $PIDFILE)
-        rm $PIDFILE
-    fi
+stop() {
+    log "Stopping $NAME"
+    local services="date-sync monitor"
+    for service in $services; do
+        local pidfile_var="PIDFILE"
+        [ "$service" = "monitor" ] && pidfile_var="PIDFILE_MONITOR"
+
+        local pidfile=$(eval echo \$$pidfile_var)
+
+        log "Stopping $service"
+        if [ -f "$pidfile" ]; then
+            local pid=$(cat "$pidfile")
+            local pids="$pid $(pgrep -P $pid)"
+
+            # Send SIGTERM to all processes
+            kill -TERM $pids 2>/dev/null
+
+            # Wait for processes to terminate
+            for i in $(seq 1 5); do
+                if ! kill -0 $pids 2>/dev/null; then
+                    break
+                fi
+                sleep 1
+            done
+
+            # Send SIGKILL to any remaining processes
+            kill -KILL $pids 2>/dev/null
+
+            rm -f "$pidfile"
+            echo "$service stopped"
+        else
+            echo "$pidfile not found, $service may not be running"
+        fi
+    done
 }
 
 case "$1" in
   start)
-	start_daemon
+	start
 	;;
   stop)
-	stop_daemon
+	stop
 	;;
   restart)
-	stop_daemon
-	start_daemon
+	stop
+	start
 	;;
   *)
 	echo "Usage: $0 {start|stop|restart}" >&2
