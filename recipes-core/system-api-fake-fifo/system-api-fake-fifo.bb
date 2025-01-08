@@ -4,7 +4,7 @@ LICENSE = "CLOSED"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}:"
 
-SRC_URI += "file://init"
+SRC_URI += "file://system-api-fake-fifo"
 
 INITSCRIPT_NAME = "system-api-fake-fifo"
 INITSCRIPT_PARAMS = "defaults 60"
