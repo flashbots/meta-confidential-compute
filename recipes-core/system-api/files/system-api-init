@@ -32,17 +32,19 @@ log() {
 
 start() {
     mkdir -p /persistent/rbuilder /persistent/system-api
-    mv $SYSTEM_API_FIFO $SYSTEM_API_FIFO.bak
     log "Starting $NAME"
-    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
+    mv $SYSTEM_API_FIFO $SYSTEM_API_FIFO.bak
+    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b --exec /bin/sh -- -c "exec $DAEMON $DAEMON_ARGS >> $LOGFILE 2>&1"
     # Wait for the service to start
     sleep 2
     cat $SYSTEM_API_FIFO.bak > $SYSTEM_API_FIFO
-    rm $SYSTEM_API_FIFO.bak
+    rm -f $SYSTEM_API_FIFO.bak
+    chmod 644 $LOGFILE
     log "Started $NAME"
 }
 
 stop() {
+    rm -f $SYSTEM_API_FIFO
     log "Stopping $NAME"
     start-stop-daemon --stop --quiet --pidfile $PIDFILE
     rm -f $PIDFILE
