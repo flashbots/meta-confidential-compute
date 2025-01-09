@@ -4,11 +4,10 @@ LICENSE = "CLOSED"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}:"
 
-SRC_URI += "file://azure-complete-provisioning \
-            file://azure-complete-provisioning.sh"
+SRC_URI += "file://azure-complete-provisioning"
 
 INITSCRIPT_NAME = "azure-complete-provisioning"
-INITSCRIPT_PARAMS = "defaults 60"
+INITSCRIPT_PARAMS = "defaults 61"
 
 inherit update-rc.d
 
