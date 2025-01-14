@@ -5,6 +5,9 @@ SRC_URI += "file://tdx-guest.scc"
 #KERNEL_FEATURES:append=" features/security/security.scc"
 KERNEL_FEATURES:append=" features/scsi/disk.scc cfg/fs/ext4.scc disk-encryption.scc security-mitigations.scc"
 
+KMACHINE:tdx ?= "common-pc-64"
+COMPATIBLE_MACHINE:tdx = "tdx"
+
 KMACHINE:sev-snp-azure ?= "common-pc-64"
 COMPATIBLE_MACHINE:sev-snp-azure = "sev-snp-azure"
 
