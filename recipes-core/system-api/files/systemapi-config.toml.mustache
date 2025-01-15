@@ -16,7 +16,7 @@ basic_auth_secret_salt = "1_drink_coffee:|"
 # TLS configuration
 tls_enabled = true
 tls_create_if_missing = true
-tls_cert_hosts = ["127.0.0.1,localhost,{{public_ip}},{{dns_name}}"]
+tls_cert_hosts = ["127.0.0.1","localhost","{{public_ip}}","{{dns_name}}"]
 tls_cert_path = "/persistent/system-api/cert.pem"
 tls_key_path = "/persistent/system-api/key.pem"
 
@@ -26,6 +26,8 @@ rbuilder_restart = "/etc/init.d/rbuilder restart"
 rbuilder_stop = "/etc/init.d/rbuilder stop"
 fetch_config = "/etc/init.d/fetch-config start"
 rbuilder_bidding_restart = "/etc/init.d/rbuilder-bidding restart"
+ssh_stop = "/etc/init.d/dropbear stop"
+ssh_start = "/etc/init.d/dropbear start"
 
 [file_uploads]
 rbuilder_blocklist = "/persistent/rbuilder/rbuilder.blocklist.json"
