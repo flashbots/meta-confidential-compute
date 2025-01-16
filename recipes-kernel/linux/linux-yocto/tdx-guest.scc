@@ -1,4 +1,4 @@
 define KFEATURE_DESCRIPTION "Intel TDX enablement"
 
-kconf hardware tdx.cfg
+kconf hardware tdx-guest.cfg
 

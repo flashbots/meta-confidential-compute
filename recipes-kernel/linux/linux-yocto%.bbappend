@@ -1,16 +1,21 @@
-KMACHINE:sev-snp ?= "common-pc-64"
-COMPATIBLE_MACHINE:sev-snp = "sev-snp"
+FILESEXTRAPATHS:prepend := "${THISDIR}/linux-yocto:"
+# adding one config to the SRC_URI will add all others in this folder as well
+SRC_URI += "file://tdx-guest.scc"
 
-KERNEL_FEATURES:append:sev-snp=" features/scsi/disk.scc"
-KERNEL_FEATURES:append:sev-snp=" cfg/virtio.scc cfg/paravirt_kvm.scc cfg/fs/ext4.scc"
-KERNEL_FEATURES:append:sev-snp=" sev-snp.scc tpm2.scc hyperv.scc security-mitigations.scc disk-encryption.scc"
+#KERNEL_FEATURES:append=" features/security/security.scc"
+KERNEL_FEATURES:append=" features/scsi/disk.scc cfg/fs/ext4.scc disk-encryption.scc security-mitigations.scc"
 
 KMACHINE:tdx ?= "common-pc-64"
 COMPATIBLE_MACHINE:tdx = "tdx"
 
-KERNEL_FEATURES:append:tdx=" features/scsi/disk.scc"
-KERNEL_FEATURES:append:tdx=" cfg/virtio.scc cfg/paravirt_kvm.scc cfg/fs/ext4.scc"
-KERNEL_FEATURES:append:tdx=" tdx.scc tpm2.scc hyperv.scc security-mitigations.scc disk-encryption.scc"
+KMACHINE:sev-snp-azure ?= "common-pc-64"
+COMPATIBLE_MACHINE:sev-snp-azure = "sev-snp-azure"
 
-#require ${@bb.utils.contains('IMAGE_FEATURES', 'hyperv', 'linux-yocto-hyperv.inc', '', d)}
-require ${@bb.utils.contains('DISTRO_FEATURES', 'cvm', 'linux-yocto-cvm.inc', '', d)}
+KMACHINE:tdx-azure ?= "common-pc-64"
+COMPATIBLE_MACHINE:tdx-azure = "tdx-azure"
+
+KMACHINE:tdx-gcp ?= "common-pc-64"
+COMPATIBLE_MACHINE:tdx-gcp = "tdx-gcp"
+
+KMACHINE:tdx-qemu ?= "common-pc-64"
+COMPATIBLE_MACHINE:tdx-qemu = "tdx-qemu"
