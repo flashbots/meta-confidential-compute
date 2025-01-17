@@ -1,13 +1,13 @@
-SUMMARY = "System API fake FIFO"
-DESCRIPTION = "Create a regular file to accumulate system events before System API starts"
+SUMMARY = "Complete Azure VM provisioning"
+DESCRIPTION = "Complete the provisioning of the Azure VM and report it is ready in the absence of the Azure VM Agent"
 LICENSE = "CLOSED"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}:"
 
-SRC_URI += "file://system-api-fake-fifo"
+SRC_URI += "file://azure-complete-provisioning"
 
-INITSCRIPT_NAME = "system-api-fake-fifo"
-INITSCRIPT_PARAMS = "defaults 60"
+INITSCRIPT_NAME = "azure-complete-provisioning"
+INITSCRIPT_PARAMS = "defaults 61"
 
 inherit update-rc.d
 

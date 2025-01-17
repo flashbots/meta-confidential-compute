@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eux -o pipefail
+set -eu -o pipefail
 
 ### BEGIN INIT INFO
 # Provides:             disk-encryption
@@ -34,20 +34,33 @@ log() {
             echo -n "$(date): "
         }
     fi
-    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO $LOGFILE
+    echo "$(date_log)$1" >&2 | tee -a $SYSTEM_API_FIFO $LOGFILE
 }
 
 find_target_disk() {
     local target_path
+    local attempt=0
+    local max_attempts=30
+    local wait_interval=10
 
-    # First try to find disk by LUN
-    target_path=$(readlink -f /dev/disk/by-path/*scsi-0:0:0:${TARGET_LUN} 2>/dev/null || true)
+    # Try to find disk by LUN with retries
+    while [ $attempt -lt $max_attempts ]; do
+        target_path=$(readlink -f /dev/disk/by-path/*scsi-0:0:0:${TARGET_LUN} 2>/dev/null || true)
 
-    if [ -n "$target_path" ] && [ -b "$target_path" ]; then
-        log "Found target disk at ${target_path} using LUN ${TARGET_LUN}"
-        echo "$target_path"
-        return 0
-    fi
+        if [ -n "$target_path" ] && [ -b "$target_path" ]; then
+            log "Found target disk at ${target_path} using LUN ${TARGET_LUN}"
+            echo "$target_path"
+            return 0
+        fi
+
+        attempt=$((attempt + 1))
+        if [ $attempt -lt $max_attempts ]; then
+            log "Attempt ${attempt}/${max_attempts}: Waiting ${wait_interval} seconds for target disk to become available..."
+            sleep $wait_interval
+        fi
+    done
+
+    log "Target disk not found after ${max_attempts} attempts, falling back to largest disk detection"
 
     # Fallback: Simply find largest disk
     local largest_disk
@@ -167,6 +180,7 @@ start() {
     fi
     log "Using disk: ${TARGET_DISK}"
 
+    exit_code=0
     KEY=$(get_key) || exit_code=$?
     if [ $exit_code -ne 0 ] || [ -z "$KEY" ]; then
         if [ "$DISK_ENCRYPTION_KEY_STORAGE" = "tpm2" ]; then

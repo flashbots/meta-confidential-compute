@@ -27,24 +27,30 @@ log() {
             echo -n "$(date): "
         }
     fi
-    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO
+    echo "$(date_log)$1" >&2 | tee -a $SYSTEM_API_FIFO
 }
 
 start() {
     mkdir -p /persistent/rbuilder /persistent/system-api
-    mv $SYSTEM_API_FIFO $SYSTEM_API_FIFO.bak
     log "Starting $NAME"
-    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b -a $DAEMON -- $DAEMON_ARGS > $LOGFILE 2>&1
+    if [ -f "$SYSTEM_API_FIFO" ]; then
+        mv $SYSTEM_API_FIFO $SYSTEM_API_FIFO.bak
+    fi
+    start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b --exec /bin/sh -- -c "exec $DAEMON $DAEMON_ARGS >> $LOGFILE 2>&1"
     # Wait for the service to start
     sleep 2
-    cat $SYSTEM_API_FIFO.bak > $SYSTEM_API_FIFO
-    rm $SYSTEM_API_FIFO.bak
+    if [ -f "$SYSTEM_API_FIFO.bak" ]; then
+        cat $SYSTEM_API_FIFO.bak > $SYSTEM_API_FIFO
+        rm -f $SYSTEM_API_FIFO.bak
+    fi
+    chmod 644 $LOGFILE
     log "Started $NAME"
 }
 
 stop() {
     log "Stopping $NAME"
     start-stop-daemon --stop --quiet --pidfile $PIDFILE
+    rm -f $SYSTEM_API_FIFO
     rm -f $PIDFILE
     log "Stopped $NAME"
 }
