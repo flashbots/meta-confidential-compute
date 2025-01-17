@@ -11,7 +11,7 @@ NAME=system-api-fake-fifo
 DESC="Create a regular file to accumulate system events before System API starts"
 
 start() {
-  install -m 0666 /var/volatile/system-api.fifo
+  install -m 0666 /dev/null /var/volatile/system-api.fifo
   echo "Starting $NAME" | tee -a /var/volatile/system-api.fifo
 }
 
