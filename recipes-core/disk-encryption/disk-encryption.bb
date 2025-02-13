@@ -46,8 +46,8 @@ do_install() {
     # Create environment file for init service
     install -d ${D}${sysconfdir}/default ${D}${sysconfdir}/disk-encryption
     echo "TARGET_LUN=${TARGET_LUN}
-    DISK_ENCRYPTION_KEY_STORAGE=${DISK_ENCRYPTION_KEY_STORAGE}" > ${D}${sysconfdir}/default/disk-encryption
-    if [ "$DISK_ENCRYPTION_KEY_STORAGE" = "file" ]; then
+DISK_ENCRYPTION_KEY_STORAGE=${DISK_ENCRYPTION_KEY_STORAGE}" > ${D}${sysconfdir}/default/disk-encryption
+    if [ "${DISK_ENCRYPTION_KEY_STORAGE}" = "file" ]; then
         echo "DISK_ENCRYPTION_KEY_FILE=/etc/disk-encryption/key" >> ${D}${sysconfdir}/default/disk-encryption
         install -m 0644 ${WORKDIR}/disk-encryption-key.mustache ${D}${sysconfdir}/disk-encryption/key.mustache
     fi

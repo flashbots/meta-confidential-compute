@@ -8,7 +8,7 @@ inherit go-mod update-rc.d
 INITSCRIPT_NAME = "system-api-init"
 INITSCRIPT_PARAMS = "defaults 89"
 
-RDEPENDS:{PN} += "system-api-fake-fifo"
+RDEPENDS:${PN} += "system-api-fake-fifo"
 
 GO_IMPORT = "github.com/flashbots/system-api"
 SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \

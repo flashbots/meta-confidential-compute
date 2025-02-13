@@ -27,7 +27,7 @@ log() {
             echo -n "$(date): "
         }
     fi
-    echo "$(date_log)$1" | tee -a $SYSTEM_API_FIFO
+    echo "$(date_log)$1" >&2 | tee -a $SYSTEM_API_FIFO
 }
 
 start() {
