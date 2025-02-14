@@ -26,7 +26,7 @@ log() {
         }
     else
         date_log() {
-            echo -n "$(date --iso-8601=seconds): "
+            echo -n "$(date -u +"%Y-%m-%dT%H:%M:%SZ"): "
         }
     fi
     echo "$(date_log)$1" >&2 | tee -a $SYSTEM_API_FIFO
