@@ -43,11 +43,15 @@ monitor_and_restart() {
     done
 }
 
+
 start() {
+    log "Initial sync..."
+    $DAEMON -d -q -g -p "$NTP_SERVER"
+
     log "Starting $NAME"
     start-stop-daemon -S --make-pidfile --pidfile $PIDFILE \
         --background --startas /bin/sh -- -c "exec \
-        ${DAEMON} -n -d -p $NTP_SERVER \
+        ${DAEMON} -n -d -g -p $NTP_SERVER \
         2>&1 | tee ${LOGFILE}"
 
     # Start the monitor in the background
