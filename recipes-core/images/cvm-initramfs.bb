@@ -6,6 +6,8 @@ CVM_DEPS = "init-ifupdown netbase busybox"
 SYSTEMD_DEPS = "systemd \
     systemd-extra-utils \
     udev \
+    dhcpcd\
+    systemd-boot\
 "
 
 PACKAGE_INSTALL = "ca-certificates \
