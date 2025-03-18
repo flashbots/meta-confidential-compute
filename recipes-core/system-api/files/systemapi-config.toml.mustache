@@ -5,8 +5,8 @@ pprof = false
 log_json = true
 log_debug = false
 
-# HTTP Basic Auth
-basic_auth_secret_path = "/persistent/system-api/basic-auth-secret"
+# HTTP Basic Auth: the salt, and where to persistently store the hashed secret
+basic_auth_secret_path = "/persistent/system-api/basic-auth-hash"
 basic_auth_secret_salt = "1_drink_coffee:|"
 
 # HTTP server timeouts
