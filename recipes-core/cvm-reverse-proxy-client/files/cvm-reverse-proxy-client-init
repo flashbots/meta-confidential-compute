@@ -9,10 +9,12 @@
 # Description:       Enable CVM Reverse Proxy Client service.
 ### END INIT INFO
 
+. /etc/init-config.conf || true
+
 DAEMON=/usr/bin/proxy-client
 NAME=cvm-reverse-proxy-client
 DESC="CVM Reverse Proxy Client"
-DAEMON_ARGS="--listen-addr=localhost:7937 --target-addr=https://hub-atls.builder.flashbots.net --client-attestation-type azure-tdx --server-attestation-type none"
+DAEMON_ARGS="--listen-addr=localhost:7937 --target-addr=${INIT_CONFIG_URL:-http://localhost:8080} --client-attestation-type azure-tdx --server-attestation-type none"
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 SYSTEM_API_FIFO=/var/volatile/system-api.fifo
