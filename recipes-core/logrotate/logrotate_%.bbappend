@@ -9,7 +9,7 @@ do_install:append() {
 
     # Install a cron job that runs logrotate every 10 minutes
     install -d ${D}${sysconfdir}/cron.d
-    install -m 0755 ${WORKDIR}/logrotate-frequent.cron ${D}${sysconfdir}/cron.d/logrotate-frequent
+    install -m 0640 ${WORKDIR}/logrotate-frequent.cron ${D}${sysconfdir}/cron.d/logrotate-frequent
 
     # Install a default logrotate configuration
     install -d ${D}${sysconfdir}/logrotate.d
