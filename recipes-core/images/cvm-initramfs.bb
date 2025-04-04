@@ -8,6 +8,7 @@ that can subsequently be picked up by external image generation tools such as wi
 CVM_DEPS = "busybox-mdev init-ifupdown initscripts base-files base-passwd netbase busybox-udhcpd"
 
 PACKAGE_INSTALL = "ca-certificates sysvinit busybox-udhcpd date-sync logrotate cronie azure-complete-provisioning ${CVM_DEPS} ${VIRTUAL-RUNTIME_base-utils} ${ROOTFS_BOOTSTRAP_INSTALL}"
+PACKAGE_INSTALL += "${@'debug-yolo' if d.getVar('DEBUG_YOLO') == '1' else ''}"
 
 INITRAMFS_MAXSIZE = "20000000"
 

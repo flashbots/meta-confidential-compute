@@ -1,0 +1,32 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          debug-yolo
+# Required-Start:    $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Short-Description: Enable debug setup for local dev
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+NAME=debug-yolo
+
+start() {
+  service dropbear start
+  until [ ! -f  "/etc/complete-provisioning" ]
+  do
+    echo "waiting on the provisioning to finish and to see the file /etc/complete-provisioning"
+    sleep 5
+  done
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
