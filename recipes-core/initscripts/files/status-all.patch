@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate [embedded specific]
+==================================================
 diff --git a/script/service b/script/service
 index 08f69bb..14872dc 100755
 --- a/script/service
