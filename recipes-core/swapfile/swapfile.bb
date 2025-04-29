@@ -21,4 +21,5 @@ do_install() {
     sed -i 's/SWAPFILE_SIZE=.*/SWAPFILE_SIZE=${SWAPFILE_SIZE}/' ${D}${sysconfdir}/init.d/swapfile
 }
 
-RDEPENDS:${PN} += "disk-encryption"
+# Disabled for provisioning PoC
+# RDEPENDS:${PN} += "disk-encryption"

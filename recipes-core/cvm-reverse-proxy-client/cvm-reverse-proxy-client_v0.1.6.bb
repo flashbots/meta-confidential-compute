@@ -9,9 +9,9 @@ INITSCRIPT_NAME = "cvm-reverse-proxy-client-init"
 INITSCRIPT_PARAMS = "defaults 86"
 
 GO_IMPORT = "github.com/flashbots/cvm-reverse-proxy"
-SRC_URI = "git://${GO_IMPORT};protocol=https;branch=main \
+SRC_URI = "git://${GO_IMPORT};protocol=https;branch=remote-tdx-provider \
            file://cvm-reverse-proxy-client-init"
-SRCREV = "v0.1.6"
+SRCREV = "c8d175676a55a71c96f42e24cc2bd1bdf0e4222b"
 
 GO_INSTALL = "${GO_IMPORT}/cmd/proxy-client"
 GO_LINKSHARED = ""
