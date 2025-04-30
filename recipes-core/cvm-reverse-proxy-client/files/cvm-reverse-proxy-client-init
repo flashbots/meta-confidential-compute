@@ -16,7 +16,7 @@ NAME=cvm-reverse-proxy-client
 DESC="CVM Reverse Proxy Client"
 
 # Note: server attestations should be verified against onchain KMS governance expected measurements
-DAEMON_ARGS="--listen-addr=localhost:7937 --target-addr=${INIT_CONFIG_URL:-http://localhost:8080} --client-attestation-type dummy --dev-dummy-dcap http://ns31695324.ip-141-94-163.eu:10080 --server-attestation-type none"
+DAEMON_ARGS="--listen-addr=localhost:7937 --target-addr=https://ns31695324.ip-141-94-163.eu:10079 --client-attestation-type dummy --dev-dummy-dcap http://ns31695324.ip-141-94-163.eu:10080 --server-measurements /etc/measurements.json"
 PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/$NAME.log
 SYSTEM_API_FIFO=/var/volatile/system-api.fifo
@@ -35,6 +35,9 @@ log() {
 }
 
 start() {
+    # TODO: should be taken from the chain!
+    echo  '[ { "measurement_id": "dcap-tdx-dummy", "attestation_type": "dcap-tdx", "measurements": { "1": "00e1dad5455e5fa87974edb69e13296dd1ba9fa86356d70b68be15dd5d36767643904de1893c1b4d47fc8d3a90675391", "2": "a7157e7c5f932e9babac9209d4527ec9ed837b8e335a931517677fa746db51ee56062e3324e266e3f39ec26a516f4f71", "3": "e63560e50830e22fbc9b06cdce8afe784bf111e4251256cf104050f1347cd4ad9f30da408475066575145da0b098a124", "4": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" } } ]' > /etc/measurements.json
+
     log "Starting $NAME"
     start-stop-daemon -S --make-pidfile -p $PIDFILE -m -b --exec /bin/sh -- -c "exec $DAEMON $DAEMON_ARGS >> $LOGFILE 2>&1"
     log "Started $NAME"
