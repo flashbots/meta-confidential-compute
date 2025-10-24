@@ -1,0 +1,24 @@
+[Unit]
+Description=Date Sync Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sh -c 'until ping -c1 pool.ntp.org >/dev/null 2>&1; do sleep 1; done'
+ExecStart=/usr/sbin/ntpd -n -d -p pool.ntp.org
+Restart=always
+RestartSec=60
+
+# Add some hardening options
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target
