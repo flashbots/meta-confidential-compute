@@ -12,6 +12,7 @@
 DAEMON=/usr/sbin/dnsmasq
 NAME=dnsmasq
 PIDFILE=/var/run/$NAME.pid
+# 168.63.129.16 is Azure DNS server
 DNSMASQ_OPTS="-S 168.63.129.16 --no-resolv --listen-address=127.0.0.1 --dns-forward-max=5000 --log-facility=/var/log/dnsmasq.log"
 
 test -x $DAEMON || exit 0
@@ -19,7 +20,6 @@ test -x $DAEMON || exit 0
 case "$1" in
     start)
         echo "Starting $NAME..."
-        # Ensure log directory exists
         mkdir -p /var/log
         start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DNSMASQ_OPTS
         echo "done."
