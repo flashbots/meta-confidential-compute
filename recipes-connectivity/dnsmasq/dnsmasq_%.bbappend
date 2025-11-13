@@ -7,6 +7,8 @@ inherit update-rc.d
 INITSCRIPT_NAME = "dnsmasq"
 INITSCRIPT_PARAMS = "defaults 15"
 
+INSANE_SKIP:${PN} += "empty-dirs"
+
 do_install:append() {
     # Install custom init script
     install -d ${D}${sysconfdir}/init.d
